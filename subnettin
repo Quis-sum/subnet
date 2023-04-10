@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Gives info on how to use tool
+howToUse () {
+	echo "
+	Usage: $0 [OPTION]... [NUM]...
+	
+	-H, --hexadecimal            convert Hexadecimal to Binary
+	-h, --help            display this help and exit
+	"
+}
+
+# converting Hexadecimal to Binary
+hex_to_decm () {
+	hexadecimal_num=$1
+
+	while [ $hexadecimal_num -gt 0 ]; do
+		# Below are other ways to append values to an array
+		: '
+		1) array+=("Dish Washer")
+		2) arrary[${#array[@]}]="Python"
+		3) array=(${array[@]} "Jack Fruit")
+		'
+		let remainder=$hexadecimal_num%2
+		result=($remainder ${result[@]})
+		hexadecimal_num=`expr $hexadecimal_num / 2`
+	done
+	
+	if [ ! ${#result[@]} = 8 ]; then
+		let complete_array=8-${#result[@]}
+		# Bash for loops don't work with 
+		# variable names i.e {1..$complete_array}
+		# Hence, below are other ways do this
+		: '
+		START=1
+		END=5
+		1) for (( i=$START; i<=$END; i++ ))
+		2) i=$START
+		   while [[ $i -le $END ]]
+		   do
+		   	/operation to perform/
+		   	((i = i + 1))
+		   done
+		3) for i in $(eval echo "{$START..$END}")
+		   do
+    		   done
+		4) seq FIRST LAST or seq FIRST INCREMENT LAST
+		   for i in $(seq 1 5); do
+		   done
+		'
+		for (( i=1; i<=$complete_array; i++ )); do
+		   result=(0 ${result[@]})
+		done
+	fi
+	
+	echo ${result[@]}
+}
+
+if [[ $1 = "-H" || $1 = "--hexadecimal" ]] && [ $2 ]; then
+	hex_to_decm $2
+elif [[ $1 = "-h" || $1 = "--help" ]]; then
+	howToUse
+else
+	howToUse
+fi
