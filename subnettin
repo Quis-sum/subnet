@@ -55,7 +55,7 @@ hex_to_decm () {
 	
 	echo ${result[@]}
 }
-
+# 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
 if [[ $1 = "-H" || $1 = "--hexadecimal" ]] && [ $2 ]; then
 	hex_to_decm $2
 elif [[ $1 = "-h" || $1 = "--help" ]]; then
