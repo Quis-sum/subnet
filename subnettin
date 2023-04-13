@@ -62,7 +62,7 @@ bin_to_hex () {
 	done
 	echo ${base2[@]}
 }
-
+# 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
 if [[ $1 = "-H" || $1 = "--hexadecimal" ]] && [ $2 ]; then
 	hex_to_bin $2
 elif [[ $1 = "-b" || $1 = "--binary" ]]; then
