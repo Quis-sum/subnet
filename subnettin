@@ -5,7 +5,7 @@ howToUse () {
 	echo "
 	Usage: $0 [OPTION]... [NUM]...
 	-b, --binary		convert binary to Hexadecimal		
-	-d, --decimal	convert Hexadecimal to Binary
+	-d, --decimal		convert decimal to Binary
 	-h, --help		display this help and exit
 	"
 }
