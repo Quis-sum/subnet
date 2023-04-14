@@ -57,16 +57,28 @@ hex_to_bin () {
 }
 
 bin_to_hex () {
-	for i in {0..7}; do
-		base2=($((2**$i)) ${base2[@]})
+	args=("$1")
+	for (( i=0; i<${#args}; i++ )); do
+		base2=$((2**$i))
+		: '
+		Say, you have a variable foo, then ${foo:0:2} yields
+		the first two characters (from position 0 the next 2).
+		'
+		if [ "${args:$i:1}" = 1 ]; then
+			((result = result + $base2))
+		elif [ ${args:$i:1} -gt 1 ]; then
+			echo "Error: Not a binary number!"
+			exit
+		fi
 	done
-	echo ${base2[@]}
+	
+	echo $result
 }
-# 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
+
 if [[ $1 = "-H" || $1 = "--hexadecimal" ]] && [ $2 ]; then
 	hex_to_bin $2
-elif [[ $1 = "-b" || $1 = "--binary" ]]; then
-	bin_to_hex
+elif [[ $1 = "-b" || $1 = "--binary" ]] && [ $2 ]; then
+	bin_to_hex $2
 elif [[ $1 = "-h" || $1 = "--help" ]]; then
 	howToUse
 else
