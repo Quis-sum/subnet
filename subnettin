@@ -5,25 +5,25 @@ howToUse () {
 	echo "
 	Usage: $0 [OPTION]... [NUM]...
 	-b, --binary		convert binary to Hexadecimal		
-	-H, --hexadecimal	convert Hexadecimal to Binary
+	-d, --decimal	convert Hexadecimal to Binary
 	-h, --help		display this help and exit
 	"
 }
 
-# converting Hexadecimal to Binary
-hex_to_bin () {
-	hexadecimal_num=$1
+# converting decimal to Binary
+dec_to_bin () {
+	decimal_num=$1
 
-	while [ $hexadecimal_num -gt 0 ]; do
+	while [ $decimal_num -gt 0 ]; do
 		# Below are other ways to append values to an array
 		: '
 		1) array+=("Dish Washer")
 		2) arrary[${#array[@]}]="Python"
 		3) array=(${array[@]} "Jack Fruit")
 		'
-		let remainder=$hexadecimal_num%2
+		let remainder=$decimal_num%2
 		result=($remainder ${result[@]})
-		hexadecimal_num=`expr $hexadecimal_num / 2`
+		decimal_num=`expr $decimal_num / 2`
 	done
 	
 	if [ ! ${#result[@]} = 8 ]; then
@@ -56,16 +56,18 @@ hex_to_bin () {
 	echo ${result[@]}
 }
 
-bin_to_hex () {
+# converting binary to decimal
+bin_to_dec () {
 	args=("$1")
+	for (( i=0; i<${#args}; i++ )); do base2=($((2**$i)) ${base2[@]}); done
+	
 	for (( i=0; i<${#args}; i++ )); do
-		base2=$((2**$i))
 		: '
 		Say, you have a variable foo, then ${foo:0:2} yields
 		the first two characters (from position 0 the next 2).
 		'
 		if [ "${args:$i:1}" = 1 ]; then
-			((result = result + $base2))
+			((result = result + ${base2[i]}))
 		elif [ ${args:$i:1} -gt 1 ]; then
 			echo "Error: Not a binary number!"
 			exit
@@ -75,10 +77,10 @@ bin_to_hex () {
 	echo $result
 }
 
-if [[ $1 = "-H" || $1 = "--hexadecimal" ]] && [ $2 ]; then
-	hex_to_bin $2
+if [[ $1 = "-d" || $1 = "--decimal" ]] && [ $2 ]; then
+	dec_to_bin $2
 elif [[ $1 = "-b" || $1 = "--binary" ]] && [ $2 ]; then
-	bin_to_hex $2
+	bin_to_dec $2
 elif [[ $1 = "-h" || $1 = "--help" ]]; then
 	howToUse
 else
