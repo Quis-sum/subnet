@@ -86,4 +86,3 @@ elif [[ $1 = "-h" || $1 = "--help" ]]; then
 else
 	howToUse
 fi
-############
