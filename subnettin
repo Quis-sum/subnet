@@ -7,6 +7,7 @@ howToUse () {
 	-b, --binary		convert binary to Hexadecimal		
 	-d, --decimal		convert decimal to Binary
 	-h, --help		display this help and exit
+	-s, --subnet		convert subnet number to CIDR notation
 	"
 }
 
@@ -77,10 +78,39 @@ bin_to_dec () {
 	echo $result
 }
 
+# convert  subnet mask to CIDR notation
+subnet_to_CIDR () {
+	regex="^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
+	if [[ ! $1 =~ $regex ]]; then
+		echo "Wrong input format"
+		exit 
+	fi
+	: '
+	This uses parameter expansion to replace commas 
+	with spaces: split_value="${value//,/ }"
+	'
+	# Hold arguments value in another variable
+	split_octet=$1
+	
+	# Use substring extraction to split $split_octet into different octets
+	first_octet="${split_octet%%.*}"
+	split_octet="${split_octet#*.}"
+	second_octet="${split_octet%%.*}"
+	split_octet="${split_octet#*.}"
+	third_octet="${split_octet%%.*}"
+	split_octet="${split_octet#*.}"
+	fourth_octet="$split_octet"
+	
+	# Print the split variables
+
+}
+
 if [[ $1 = "-d" || $1 = "--decimal" ]] && [ $2 ]; then
 	dec_to_bin $2
 elif [[ $1 = "-b" || $1 = "--binary" ]] && [ $2 ]; then
 	bin_to_dec $2
+elif [[ $1 = "-s" || $1 = "--subnet" ]] && [ $2 ]; then
+	subnet_to_CIDR $2
 elif [[ $1 = "-h" || $1 = "--help" ]]; then
 	howToUse
 else
