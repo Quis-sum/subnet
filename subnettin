@@ -112,10 +112,10 @@ subnet_to_CIDR () {
 	count=0 
 	
 	for num in $binary_value; do
-		if [ $num = 1 ]; then $((count++)); fi
+		if [ $num = 1 ]; then ((++count)); fi
 	done
 	
-	echo $count
+	echo "The CIDR notation for $1 is /$count"
 
 }
 
