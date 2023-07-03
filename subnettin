@@ -1,20 +1,23 @@
 #!/bin/bash
 
-# Gives info on how to use tool
 howToUse () {
+    # This function gives info on how to use the tool
 	echo "
 	Usage: $0 [OPTION]... [NUM]...
-	-b, --binary		convert binary to Hexadecimal		
+	-b, --binary		convert binary to decimal		
 	-d, --decimal		convert decimal to Binary
-	-h, --help		display this help and exit
+	-h, --help		    display this help and exit
+    -H, --hosts         calculate number of hosts
 	-s, --subnet		convert subnet number to CIDR notation
 	"
 }
 
-# converting decimal to Binary
 dec_to_bin () {
+    # This function converts decimal to Binary
 	decimal_num=$1
-
+    
+    # The following while loop converts the 
+    #passed parameter from decimal to binary
 	while [ $decimal_num -gt 0 ]; do
 		# Below are other ways to append values to an array
 		: '
@@ -27,8 +30,14 @@ dec_to_bin () {
 		decimal_num=`expr $decimal_num / 2`
 	done
 	
+	# Checks if the Binary result consists of 8 digits 
+	# (i.e IP addresses are in octets), else add 
+	# required amount of zeroes to complete 8 digits
 	if [ ! ${#result[@]} = 8 ]; then
+	
+	    # ${#result[@]} signifies length of array
 		let complete_array=8-${#result[@]}
+		
 		# Bash for loops don't work with 
 		# variable names i.e {1..$complete_array}
 		# Hence, below are other ways do this
@@ -57,16 +66,22 @@ dec_to_bin () {
 	echo ${result[@]}
 }
 
-# converting binary to decimal
 bin_to_dec () {
+    # This function converts binary to decimal
 	args=("$1")
 	for (( i=0; i<${#args}; i++ )); do base2=($((2**$i)) ${base2[@]}); done
 	
 	for (( i=0; i<${#args}; i++ )); do
 		: '
 		Say, you have a variable foo, then ${foo:0:2} yields
-		the first two characters (from position 0 the next 2).
+		the first two characters (counting from index 0, take 2) 
+		(--i.e index 0 and another--).
+		
+		i.e foo=abcdef
+		${foo:0:2} will give "ab"
 		'
+		
+		# One could say ${args:$i:1} was used to get indexes here
 		if [ "${args:$i:1}" = 1 ]; then
 			((result = result + ${base2[i]}))
 		elif [ ${args:$i:1} -gt 1 ]; then
@@ -78,9 +93,14 @@ bin_to_dec () {
 	echo $result
 }
 
-# convert  subnet mask to CIDR notation
-subnet_to_CIDR () {
+octet_converter () {
+    # This regex checks if the given parameter is in a
+    # group of four octets, consisting of only numbers 
+    # (i.e comes in an IP address format)
 	regex="^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
+	
+	# "=~" is used to check if a parameter matches a regex
+	# In this case, a reverse matching is done
 	if [[ ! $1 =~ $regex ]]; then
 		echo "Error: Incorrect format"
 		exit 
@@ -88,13 +108,31 @@ subnet_to_CIDR () {
 	: '
 	This uses parameter expansion to replace commas 
 	with spaces: split_value="${value//,/ }"
+	
+	This chops the longest match for pattern from the left 
+	side of value: ${value##pattern}
+	
+	This chops the shortest match for pattern from the right 
+	side of value: ${value%pattern}
+	
+	If variable is unset or empty, value is 
+	assigned to it: ${variable:-value}
 	'
 	# Hold args value in another variable
 	split_octet=$1
-	# A subnet mask contains four octets
-	# Use substring extraction to split $split_octet into different octets
+	
+	# A subnet mask contains four octets, using substring extraction, 
+	# $split_octet is split into different octets
+	# --------------------------------------------------------------#
+	# What the following line of code does is remove the
+	# longest match for ".*" from the right side of
+	# $split_octet and assign the value to $first_octet 
 	first_octet="${split_octet%%.*}"
-	# Redefine $split_octet and split into second octet
+	
+	# $split_octet is redefined and split into the second octet
+	
+	# What the following line of code does is remove the shortest 
+	# match for "*." from the left side of $split_octet
 	split_octet="${split_octet#*.}"
 	second_octet="${split_octet%%.*}"
 	# Redefine $split_octet and split into third octet
@@ -107,16 +145,57 @@ subnet_to_CIDR () {
 	# Print the split variables
 	# echo $first_octet $second_octet $third_octet $fourth_octet
 	
-	binary_value="$(dec_to_bin $first_octet) $(dec_to_bin $second_octet) $(dec_to_bin $third_octet) $(dec_to_bin $fourth_octet)"
+	# Uses dec_to_bin to convert each octet into binary
+	result="$(dec_to_bin $first_octet) $(dec_to_bin $second_octet) $(dec_to_bin $third_octet) $(dec_to_bin $fourth_octet)"
+    
+    echo $result
+}
+
+subnet_to_CIDR () {
+    # This function converts subnet mask to CIDR notation
+    binary_value=$(octet_converter $1)
+    
+	# Store total number of bits in $binary_value
+	bitsCount=0
 	
-	count=0 
+	# Store number of network bits in $binary_value (i.e bits that are 1)
+	networkBits=0
 	
+	# Count how many bits in $binary_value are 1 
 	for num in $binary_value; do
-		if [ $num = 1 ]; then ((++count)); fi
+	    ((++bitsCount))
+		if [ $num = 1 ]; then ((++networkBits)); fi
 	done
 	
-	echo "The CIDR notation for $1 is /$count"
+	# An IP address can not be greater than 32 bits 
+	if [ $bitsCount -gt 32 ]; then 
+	    echo "Error: $1 is Not a valid subnet" 
+	    exit 
+	else 
+	    echo "The CIDR notation for $1 is /$networkBits" 
+	fi
+}
 
+no_of_hosts () {
+    # This function calculates the number of hosts in a subnet
+    binary_value=$(octet_converter $1)
+    
+    # Store number of host bits in $binary_value (i.e bits that are 0)
+    hostBits=0
+    
+    # `echo $binary_value | rev` reverse the values in $binary_value
+    for num in `echo $binary_value | rev`; do
+    
+        # add up the number of zeroes but stop
+        # if a non zero number is encountered
+        if [ $num = 0 ]; then ((++hostBits))
+        else break; fi
+    done 
+    
+    hosts=$((2**$hostBits))
+    availableHosts=$(($hosts-2))
+    echo "Total Number of hosts in the subnet are $hosts"
+    echo "Number of available Hosts in the subnet are $availableHosts"
 }
 
 if [[ $1 = "-d" || $1 = "--decimal" ]] && [ $2 ]; then
@@ -125,6 +204,8 @@ elif [[ $1 = "-b" || $1 = "--binary" ]] && [ $2 ]; then
 	bin_to_dec $2
 elif [[ $1 = "-s" || $1 = "--subnet" ]] && [ $2 ]; then
 	subnet_to_CIDR $2
+elif [[ $1 = "-H" || $1 = "--hosts" ]] && [ $2 ]; then
+	no_of_hosts $2
 elif [[ $1 = "-h" || $1 = "--help" ]]; then
 	howToUse
 else
